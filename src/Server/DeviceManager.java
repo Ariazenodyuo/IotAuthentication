@@ -43,42 +43,9 @@ public class DeviceManager {
 		
 	}
 	
-	public static boolean validate(String deviceId, String jwt) throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, MalformedClaimException, CertificateException {
-		if( ! new File(ServerConstant.KEY_PATH + "/" + deviceId + "_public.pem").exists())
-			System.out.println("Public key doesn't exist");
-		else {
-			FileInputStream key = new FileInputStream(ServerConstant.KEY_PATH + "/" + deviceId + "_public.pem");
-			CertificateFactory factory = CertificateFactory.getInstance("X.509");  
-			JwtConsumer consumer = new JwtConsumerBuilder()
-					.setVerificationKey(factory.generateCertificate(key).getPublicKey())
-					.setExpectedAudience(deviceId)
-					.setRequireExpirationTime()
-					.setJwsAlgorithmConstraints(
-						new AlgorithmConstraints(ConstraintType.WHITELIST, AlgorithmIdentifiers.ECDSA_USING_P256_CURVE_AND_SHA256))
-					.build();
-			
-			try {
-				JwtClaims claims = consumer.processToClaims(jwt);
-				System.out.println("JWT validation succeeded! " + claims);
-				return true;
-			} catch (InvalidJwtException  e) {
-				System.out.println("Invalid JWT! " + e);
-		        if (e.hasExpired())
-		        {
-		            System.out.println("JWT expired at " + e.getJwtContext().getJwtClaims().getExpirationTime());
-		        }
-		        // Or maybe the audience was invalid
-		        if (e.hasErrorCode(ErrorCodes.AUDIENCE_INVALID))
-		        {
-		            System.out.println("JWT had wrong audience: " + e.getJwtContext().getJwtClaims().getAudience());
-		        }
-		        
-			}
-			
-		}
-		return false;
-		
-	}
+	
+	
+	
 		
 	
 	/**

@@ -21,8 +21,10 @@ import Util.Utility;
 
 /**
  * 
- * 这个测试的是jwt经过修改后的情况
- * 1.运行程序
+ * 
+ * This test is for the situation that jwt is corrupted by the third-party
+ *  
+ * 1. Run the program
  *
  */
 
@@ -35,8 +37,8 @@ public class Testing3 {
 	static String clientId_1 = "Server";
 	static String TOPIC_1 = "Testing_Topic";
 	public static void main(String[] args) throws UnknownHostException, MqttException, IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, JoseException {
-		Client client = new Client("tcp://127.0.0.1:11883", clientId_1);
-		Client server = new Client("tcp://127.0.0.1:11883", "server");
+		Client client = new Client("tcp://127.0.0.1:11883", "aaa");
+		Client server = new Client("tcp://127.0.0.1:11883", clientId_1);
 		
 		MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
@@ -45,7 +47,7 @@ public class Testing3 {
         options.setConnectionTimeout(10);
         options.setKeepAliveInterval(20);
         try {
-            server.setCallback(new Pushback());
+            server.setCallback(new Pushback(server, clientId_1));
             client.connect(options);
             server.connect(options);
             topic1 = server.getTopic(TOPIC_1);

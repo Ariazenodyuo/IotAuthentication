@@ -21,11 +21,13 @@ import Util.Utility;
 
 /**
  * 
- * 这个测试的是客户端存在id所对应的私钥，但是客户端不存在对应的公钥的情况
- * 1.将服务器公钥目录下的Server重命名为Server123
- * 2.运行程序
- * 3.将第一步的操作复原
- *
+ * 
+ * This test is for the situation that the public key of the device is not found on the server
+ * 
+ * 1. Run the program to create the correct key pairs
+ * 2. Delete the certain public key under Server's directory (keypairs)
+ * 3. Run the program
+ * 4. Recover the second step
  */
 
 public class Testing4 {
@@ -37,8 +39,8 @@ public class Testing4 {
 	static String clientId_1 = "Server";
 	static String TOPIC_1 = "Testing_Topic";
 	public static void main(String[] args) throws UnknownHostException, MqttException, IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, JoseException {
-		Client client = new Client("tcp://127.0.0.1:11883", clientId_1);
-		Client server = new Client("tcp://127.0.0.1:11883", "server");
+		Client client = new Client("tcp://127.0.0.1:11883", "aaa");
+		Client server = new Client("tcp://127.0.0.1:11883", clientId_1);
 		
 		MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
@@ -47,7 +49,7 @@ public class Testing4 {
         options.setConnectionTimeout(10);
         options.setKeepAliveInterval(20);
         try {
-            server.setCallback(new Pushback());
+            server.setCallback(new Pushback(server, clientId_1));
             client.connect(options);
             server.connect(options);
             topic1 = server.getTopic(TOPIC_1);

@@ -12,13 +12,18 @@ import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttSecurityException;
+import org.jose4j.jwt.MalformedClaimException;
 
 import Server.Pushback;
 import Util.ClientConstant;
+import Util.Utility;
 public class Client extends MqttClient {
 
 	String clientId = null;
@@ -26,7 +31,7 @@ public class Client extends MqttClient {
 		
 		super(serverURI, clientId);
 		this.clientId = clientId;
-		this.setCallback(new Pushback());
+		this.setCallback(new Pushback(this,clientId));
 		File file = new File(ClientConstant.KEY_PATH+"/ec_"+clientId+"_private_pkcs8");
 		if(!file.exists())
 			register(clientId);
@@ -115,19 +120,27 @@ public class Client extends MqttClient {
 	}
 	 
 	
-	/*public void RefreshJwt(	MqttConnectOptions connectOptions) throws NoSuchAlgorithmException, InvalidKeySpecException, IOException, JoseException, MqttSecurityException, MqttException {
-		Options options = this.options; 
-		long now = new Date().getTime();
-		if(now > options.getTokenExp()) {
-			System.out.format("\tRefreshing token after: %d seconds\n", now - options.getTokenIst());
-			//assume using algorithm ES256
-			connectOptions.setPassword(Utility.createJwtEs(options.getDeviceId(), options.getPrivateKeyFile(), options).toCharArray());
-			connectOptions.setUserName("unused");
-		this.disconnect();
-		this.connect();
+	public void authenticateA(String message) throws UnknownHostException, IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, MalformedClaimException, CertificateException {
 		
+		String ClientId = message.split(ClientConstant.DEM)[0];
+		Socket socket = new Socket(ClientConstant.DEVICEMANAGER_HOST, ClientConstant.AUTHENTICATION_PORT);
+		BufferedReader input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+		PrintStream out = new PrintStream(socket.getOutputStream());
+		out.println(message);
+		String content = input.readLine();
+		input.close();
+		out.close();
+		socket.close();
+		
+		if("Public key doesn't exist".equals(content)){
+			System.out.println(content);
+		} else {
+			Utility.validate(ClientId, content);
 		}
-	}*/
+		
+		
+		
+	}
 	
 
 }

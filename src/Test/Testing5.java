@@ -21,8 +21,8 @@ import Util.Utility;
 
 /**
  * 
- * 这个测试的是10个用户能否注册认证成功
- * 1. 运行程序
+ * This test is for the situation that 10 users register at the same time
+ * 1. Run the program
  *
  */
     class Testing5 {
@@ -33,10 +33,11 @@ import Util.Utility;
 	static MqttTopic topic1;
 	static String TOPIC_1 = "Testing_Topic";
 	static Client[] client_list = new Client[10]; 
+	static String client_id = "Server";
 	public static void main(String[] args) throws UnknownHostException, MqttException, IOException, InterruptedException, NoSuchAlgorithmException, InvalidKeySpecException, JoseException {
 		for(int i = 0; i < 10; i++)
 			client_list[i] = new Client("tcp://127.0.0.1:11883", "client"+i);
-		Client server = new Client("tcp://127.0.0.1:11883", "server");
+		Client server = new Client("tcp://127.0.0.1:11883", client_id);
 		
 		MqttConnectOptions options = new MqttConnectOptions();
         options.setCleanSession(true);
@@ -45,7 +46,7 @@ import Util.Utility;
         options.setConnectionTimeout(10);
         options.setKeepAliveInterval(20);
         try {
-            server.setCallback(new Pushback());
+            server.setCallback(new Pushback(server, client_id));
             for(int i = 0; i < 10; i++)
             	client_list[i].connect(options);
             server.connect(options);
@@ -60,7 +61,7 @@ import Util.Utility;
         for(int i = 0; i < 10; i++) {
         	message[i] = new MqttMessage();
         	message[i].setQos(2);
-            message[i].setPayload(Utility.createJwtEs("client"+i, "content", "This is the message from client"+i).getBytes());
+            message[i].setPayload(Utility.createJwtEs(client_id, "content", "This is the message from client"+i).getBytes());
             topic1.publish(message[i]);
             client_list[i].disconnect();
             client_list[i].close();

@@ -21,10 +21,10 @@ import Util.Utility;
 
 /**
  * 
- * 这个测试的是测试NUMBER个没有注册过的新客户端同时注册并认证所需的时间
+ * This test is to record the time needed for NUMBER new devices to register and authenticate
  * 
- * 先运行一遍以便于生成所有的公私钥，再第二遍时记录性能。因为90%的时间会消耗再IO操作上
- *
+ * Run the program twice because 90% of the time will be consumed on the I/O operation for the first time
+ * 
  */
 
 public class Testing6 {
@@ -34,6 +34,7 @@ public class Testing6 {
 	static String password = "public";
 	static MqttTopic topic1;
 	static String TOPIC_1 = "Testing_Topic";
+	static String client_id = "Server";
 	public static void exe(String clientid, MqttConnectOptions options) {
 		new Runnable() {
 			public void run() {
@@ -42,7 +43,7 @@ public class Testing6 {
 					client.connect(options);
 					MqttMessage message = new MqttMessage();
 		        	message.setQos(2);
-		            message.setPayload(Utility.createJwtEs(clientid, "content", "This is the message from"+clientid).getBytes());
+		            message.setPayload(Utility.createJwtEs(client_id, "content", "This is the message from"+clientid).getBytes());
 		            topic1.publish(message);
 		            client.disconnect();
 		            client.close();
@@ -64,7 +65,7 @@ public class Testing6 {
         options.setConnectionTimeout(10);
         options.setKeepAliveInterval(20);
         try {
-            server.setCallback(new Pushback());
+            server.setCallback(new Pushback(server, client_id));
             server.connect(options);
             topic1 = server.getTopic(TOPIC_1);
         } catch (Exception e) {
